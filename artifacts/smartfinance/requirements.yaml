@@ -1,0 +1,16 @@
+packages:
+  "recharts": "For rendering financial charts (trends, category breakdowns)"
+  "framer-motion": "For page transitions and micro-interactions"
+  "date-fns": "For formatting dates in transactions and charts"
+  "react-markdown": "For rendering formatted AI responses in the chat"
+  "lucide-react": "For UI icons"
+
+images:
+  - path: "artifacts/smartfinance/public/images/ai-bg.png"
+    description: "Dark, abstract, premium financial technology background with deep blues, neon teal, and subtle purple neural network glowing lines."
+    aspect_ratio: "16:9"
+
+notes:
+  - "The app uses a dark theme by default, styled for a premium fintech feel."
+  - "OpenAI SSE streaming is implemented manually via fetch in the chat hook, bypassing Orval codegen for that specific endpoint."
+  - "Assumes @workspace/api-client-react hooks are available and correctly typed."

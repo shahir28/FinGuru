@@ -1,22 +1,33 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: SmartFinance AI API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: transactions
+    description: Transaction management
+  - name: budgets
+    description: Budget management
+  - name: insights
+    description: AI-powered financial insights
+  - name: openai
+    description: OpenAI AI chat integration
+  - name: categories
+    description: Spending categories
+  - name: accounts
+    description: Financial accounts
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +35,434 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /accounts:
+    get:
+      operationId: listAccounts
+      tags: [accounts]
+      summary: List all accounts
+      responses:
+        "200":
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Account"
+    post:
+      operationId: createAccount
+      tags: [accounts]
+      summary: Create an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountBody"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [transactions]
+      summary: List transactions with pagination and filtering
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: accountId
+          in: query
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [income, expense, transfer]
+      responses:
+        "200":
+          description: Paginated transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTransactions"
+    post:
+      operationId: createTransaction
+      tags: [transactions]
+      summary: Create a transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionBody"
+      responses:
+        "201":
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /transactions/{id}:
+    get:
+      operationId: getTransaction
+      tags: [transactions]
+      summary: Get a transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+    patch:
+      operationId: updateTransaction
+      tags: [transactions]
+      summary: Update a transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTransactionBody"
+      responses:
+        "200":
+          description: Updated transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+    delete:
+      operationId: deleteTransaction
+      tags: [transactions]
+      summary: Delete a transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  /transactions/bulk-categorize:
+    post:
+      operationId: bulkCategorizeTransactions
+      tags: [transactions]
+      summary: AI-powered bulk categorization of transactions
+      responses:
+        "200":
+          description: Categorization result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkCategorizeResult"
+
+  /budgets:
+    get:
+      operationId: listBudgets
+      tags: [budgets]
+      summary: List all budgets
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of budgets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Budget"
+    post:
+      operationId: createBudget
+      tags: [budgets]
+      summary: Create a budget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBudgetBody"
+      responses:
+        "201":
+          description: Budget created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+
+  /budgets/{id}:
+    patch:
+      operationId: updateBudget
+      tags: [budgets]
+      summary: Update a budget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBudgetBody"
+      responses:
+        "200":
+          description: Updated budget
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+    delete:
+      operationId: deleteBudget
+      tags: [budgets]
+      summary: Delete a budget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  /insights/spending-trends:
+    get:
+      operationId: getSpendingTrends
+      tags: [insights]
+      summary: Get spending trends by month
+      parameters:
+        - name: months
+          in: query
+          schema:
+            type: integer
+            default: 12
+      responses:
+        "200":
+          description: Spending trends
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyTrend"
+
+  /insights/category-breakdown:
+    get:
+      operationId: getCategoryBreakdown
+      tags: [insights]
+      summary: Get spending breakdown by category
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Category breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryBreakdown"
+
+  /insights/summary:
+    get:
+      operationId: getFinancialSummary
+      tags: [insights]
+      summary: Get financial summary with AI insights
+      responses:
+        "200":
+          description: Financial summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialSummary"
+
+  /insights/ai-analysis:
+    post:
+      operationId: getAIAnalysis
+      tags: [insights]
+      summary: Get AI-powered financial analysis and recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AIAnalysisRequest"
+      responses:
+        "200":
+          description: AI analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIAnalysisResponse"
+
+  /insights/anomalies:
+    get:
+      operationId: detectAnomalies
+      tags: [insights]
+      summary: AI-powered anomaly detection in spending
+      responses:
+        "200":
+          description: Detected anomalies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Anomaly"
+
+  /insights/tax-summary:
+    get:
+      operationId: getTaxSummary
+      tags: [insights]
+      summary: Get tax-related transaction summary
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tax summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxSummary"
+
+  /openai/conversations:
+    get:
+      operationId: listOpenaiConversations
+      tags: [openai]
+      summary: List conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createOpenaiConversation
+      tags: [openai]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationBody"
+      responses:
+        "201":
+          description: Conversation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /openai/conversations/{id}:
+    get:
+      operationId: getOpenaiConversation
+      tags: [openai]
+      summary: Get a conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationWithMessages"
+
+  /openai/conversations/{id}/messages:
+    post:
+      operationId: sendOpenaiMessage
+      tags: [openai]
+      summary: Send a message to the AI financial advisor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOpenaiMessageBody"
+      responses:
+        "200":
+          description: AI response stream (SSE)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +470,393 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          enum: [checking, savings, credit, investment, loan]
+        balance:
+          type: number
+        currency:
+          type: string
+        institution:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, name, type, balance, currency, isActive, createdAt]
+
+    CreateAccountBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [checking, savings, credit, investment, loan]
+        balance:
+          type: number
+        currency:
+          type: string
+        institution:
+          type: string
+      required: [name, type, balance]
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        accountId:
+          type: integer
+        amount:
+          type: number
+        description:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        type:
+          type: string
+          enum: [income, expense, transfer]
+        date:
+          type: string
+        merchant:
+          type: string
+        isRecurring:
+          type: boolean
+        aiCategorized:
+          type: boolean
+        notes:
+          type: string
+        createdAt:
+          type: string
+      required: [id, accountId, amount, description, category, type, date, isRecurring, aiCategorized, createdAt]
+
+    CreateTransactionBody:
+      type: object
+      properties:
+        accountId:
+          type: integer
+        amount:
+          type: number
+        description:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        type:
+          type: string
+          enum: [income, expense, transfer]
+        date:
+          type: string
+        merchant:
+          type: string
+        isRecurring:
+          type: boolean
+        notes:
+          type: string
+      required: [accountId, amount, description, category, type, date]
+
+    UpdateTransactionBody:
+      type: object
+      properties:
+        amount:
+          type: number
+        description:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        type:
+          type: string
+          enum: [income, expense, transfer]
+        date:
+          type: string
+        merchant:
+          type: string
+        isRecurring:
+          type: boolean
+        notes:
+          type: string
+
+    PaginatedTransactions:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required: [data, total, page, limit, totalPages]
+
+    BulkCategorizeResult:
+      type: object
+      properties:
+        categorized:
+          type: integer
+        failed:
+          type: integer
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              category:
+                type: string
+              confidence:
+                type: number
+            required: [id, category, confidence]
+      required: [categorized, failed, results]
+
+    Budget:
+      type: object
+      properties:
+        id:
+          type: integer
+        category:
+          type: string
+        limit:
+          type: number
+        spent:
+          type: number
+        month:
+          type: integer
+        year:
+          type: integer
+        alertThreshold:
+          type: number
+        createdAt:
+          type: string
+      required: [id, category, limit, spent, month, year, createdAt]
+
+    CreateBudgetBody:
+      type: object
+      properties:
+        category:
+          type: string
+        limit:
+          type: number
+        month:
+          type: integer
+        year:
+          type: integer
+        alertThreshold:
+          type: number
+      required: [category, limit, month, year]
+
+    UpdateBudgetBody:
+      type: object
+      properties:
+        limit:
+          type: number
+        alertThreshold:
+          type: number
+
+    MonthlyTrend:
+      type: object
+      properties:
+        month:
+          type: string
+        income:
+          type: number
+        expenses:
+          type: number
+        savings:
+          type: number
+      required: [month, income, expenses, savings]
+
+    CategoryBreakdown:
+      type: object
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+        percentage:
+          type: number
+        transactionCount:
+          type: integer
+        color:
+          type: string
+      required: [category, amount, percentage, transactionCount, color]
+
+    FinancialSummary:
+      type: object
+      properties:
+        totalBalance:
+          type: number
+        monthlyIncome:
+          type: number
+        monthlyExpenses:
+          type: number
+        monthlySavings:
+          type: number
+        savingsRate:
+          type: number
+        netWorth:
+          type: number
+        creditScore:
+          type: integer
+        aiInsight:
+          type: string
+        changeFromLastMonth:
+          type: object
+          properties:
+            income:
+              type: number
+            expenses:
+              type: number
+            savings:
+              type: number
+          required: [income, expenses, savings]
+      required: [totalBalance, monthlyIncome, monthlyExpenses, monthlySavings, savingsRate, netWorth, aiInsight, changeFromLastMonth]
+
+    AIAnalysisRequest:
+      type: object
+      properties:
+        question:
+          type: string
+        context:
+          type: string
+      required: [question]
+
+    AIAnalysisResponse:
+      type: object
+      properties:
+        analysis:
+          type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        score:
+          type: number
+      required: [analysis, recommendations]
+
+    Anomaly:
+      type: object
+      properties:
+        transactionId:
+          type: integer
+        description:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        date:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high]
+        reason:
+          type: string
+      required: [transactionId, description, amount, category, date, severity, reason]
+
+    TaxSummary:
+      type: object
+      properties:
+        year:
+          type: integer
+        totalIncome:
+          type: number
+        taxableIncome:
+          type: number
+        deductibleExpenses:
+          type: number
+        estimatedTax:
+          type: number
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              amount:
+                type: number
+              isDeductible:
+                type: boolean
+            required: [category, amount, isDeductible]
+      required: [year, totalIncome, taxableIncome, deductibleExpenses, estimatedTax, categories]
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, title, createdAt, updatedAt]
+
+    ConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, title, messages, createdAt, updatedAt]
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        createdAt:
+          type: string
+      required: [id, conversationId, role, content, createdAt]
+
+    CreateConversationBody:
+      type: object
+      properties:
+        title:
+          type: string
+      required: [title]
+
+    SendOpenaiMessageBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required: [content]

@@ -10,9 +10,6 @@
 
 ---
 
-## Why This Project
-
-Built as a technical showcase for Intuit — the company behind QuickBooks, TurboTax, and Mint. Every architectural decision mirrors real-world fintech concerns: fast API response times even when AI calls are slow, configurable rule-based automation, real-time user feedback, and a contract-first API design that scales across teams.
 
 ---
 
